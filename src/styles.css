@@ -228,6 +228,27 @@ td strong { color: #f4f5f7; }
 .dialog-content { min-height: 220px; padding: 24px; line-height: 1.6; }
 .detail-loading { min-height: 170px; display: grid; place-items: center; align-content: center; gap: 12px; color: #9ba4b1; }
 .muted { margin-top: 18px; color: #8e98a5; }
+.detail-error { margin-top: 18px; color: #ff9ba8; }
+
+.timeline {
+  display: grid;
+  gap: 0;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline li {
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid #29313b;
+}
+
+.timeline li > span { color: #79ead6; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.timeline li div { display: grid; gap: 3px; }
+.timeline small { color: #8e98a5; }
 
 .sr-only {
   position: absolute;

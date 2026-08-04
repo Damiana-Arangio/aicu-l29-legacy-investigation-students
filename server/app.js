@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 import { createTicketRepository } from "./ticket-repository.js";
 import { createTicketService } from "./ticket-service.js";
 import { createLegacySummaryProvider } from "./legacy-summary-provider.js";
+import { createTicketHistoryRepository } from "./ticket-history-repository.js";
+import { createTicketHistoryService } from "./ticket-history-service.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const defaultRootDir = resolve(__dirname, "..");
@@ -14,10 +16,16 @@ export function createTicketApplication({
   rootDir = defaultRootDir,
   databasePath = join(defaultRootDir, "data", "tickets.sqlite"),
   summaryDelayMs = 480,
-  summaryProvider = createLegacySummaryProvider({ delayMs: summaryDelayMs })
+  summaryProvider = createLegacySummaryProvider({ delayMs: summaryDelayMs }),
+  historyDelayMs = 850
 } = {}) {
   const ticketRepository = createTicketRepository(databasePath);
   const ticketService = createTicketService({ ticketRepository, summaryProvider });
+  const historyRepository = createTicketHistoryRepository({ delayMs: historyDelayMs });
+  const ticketHistoryService = createTicketHistoryService({
+    ticketRepository,
+    historyRepository
+  });
 
   const server = createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host}`);
@@ -32,6 +40,25 @@ export function createTicketApplication({
         sendJson(response, 200, {
           tickets: await ticketService.listTicketsWithSummary()
         });
+        return;
+      }
+
+      const historyMatch = url.pathname.match(/^\/api\/tickets\/([^/]+)\/history$/);
+
+      if (request.method === "GET" && historyMatch) {
+        const history = await ticketHistoryService.getTicketHistory(
+          decodeURIComponent(historyMatch[1])
+        );
+
+        if (!history) {
+          sendJson(response, 404, {
+            code: "TICKET_NOT_FOUND",
+            message: "Ticket non trovato."
+          });
+          return;
+        }
+
+        sendJson(response, 200, history);
         return;
       }
 

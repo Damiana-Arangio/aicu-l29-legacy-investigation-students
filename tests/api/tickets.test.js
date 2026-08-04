@@ -20,11 +20,22 @@ test("GET /api/tickets returns the seeded dashboard tickets", async (t) => {
   );
 });
 
+test("GET /api/tickets/:id/history returns the detail timeline", async (t) => {
+  const baseUrl = await startApplication(t);
+  const response = await fetch(`${baseUrl}/api/tickets/TCK-1088/history`);
+  const payload = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(payload.ticketId, "TCK-1088");
+  assert.equal(payload.events.length, 3);
+});
+
 async function startApplication(t) {
   const directory = mkdtempSync(join(tmpdir(), "aicu-l29-"));
   const application = createTicketApplication({
     databasePath: join(directory, "tickets.sqlite"),
-    summaryDelayMs: 0
+    summaryDelayMs: 0,
+    historyDelayMs: 0
   });
 
   await new Promise((resolveListen) => {

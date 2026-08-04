@@ -95,10 +95,35 @@ async function openTicket(ticketId) {
   `;
   elements.dialog.showModal();
 
-  elements.detailContent.innerHTML = `
-    <p>${escapeHtml(ticket?.description ?? "Descrizione non disponibile")}</p>
-    <p class="muted">La cronologia dettagliata sarà disponibile nel prossimo aggiornamento.</p>
-  `;
+  try {
+    const response = await fetch(`/api/tickets/${encodeURIComponent(ticketId)}/history`);
+
+    if (!response.ok) {
+      throw new Error(`GET ticket history: ${response.status}`);
+    }
+
+    const payload = await response.json();
+    elements.detailContent.innerHTML = `
+      <p>${escapeHtml(ticket?.description ?? "Descrizione non disponibile")}</p>
+      <ol class="timeline">
+        ${payload.events.map((event) => `
+          <li>
+            <span>${escapeHtml(event.at)}</span>
+            <div>
+              <strong>${escapeHtml(event.label)}</strong>
+              <small>${escapeHtml(event.actor)}</small>
+            </div>
+          </li>
+        `).join("")}
+      </ol>
+    `;
+  } catch (error) {
+    console.error(error);
+    elements.detailContent.innerHTML = `
+      <p>${escapeHtml(ticket?.description ?? "Descrizione non disponibile")}</p>
+      <p class="detail-error">Cronologia non disponibile.</p>
+    `;
+  }
 }
 
 function setDashboardState(state) {

@@ -30,3 +30,8 @@ pnpm reset
 ```
 
 No API key, environment file or external service is required.
+
+## Activity
+
+Read [CONSEGNA.md](./CONSEGNA.md) before starting the investigation. The task
+requires evidence and an empty application diff, not a performance patch.
