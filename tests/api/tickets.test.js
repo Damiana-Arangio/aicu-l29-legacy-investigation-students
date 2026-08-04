@@ -14,12 +14,17 @@ test("GET /api/tickets returns the seeded dashboard tickets", async (t) => {
   assert.equal(response.status, 200);
   assert.equal(payload.tickets.length, 6);
   assert.equal(payload.tickets[0].id, "TCK-1088");
+  assert.equal(
+    payload.tickets[0].summary,
+    "Verifica immediata e contatto con il cliente"
+  );
 });
 
 async function startApplication(t) {
   const directory = mkdtempSync(join(tmpdir(), "aicu-l29-"));
   const application = createTicketApplication({
-    databasePath: join(directory, "tickets.sqlite")
+    databasePath: join(directory, "tickets.sqlite"),
+    summaryDelayMs: 0
   });
 
   await new Promise((resolveListen) => {

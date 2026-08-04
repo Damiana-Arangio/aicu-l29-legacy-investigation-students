@@ -5,16 +5,19 @@ import { fileURLToPath } from "node:url";
 
 import { createTicketRepository } from "./ticket-repository.js";
 import { createTicketService } from "./ticket-service.js";
+import { createLegacySummaryProvider } from "./legacy-summary-provider.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const defaultRootDir = resolve(__dirname, "..");
 
 export function createTicketApplication({
   rootDir = defaultRootDir,
-  databasePath = join(defaultRootDir, "data", "tickets.sqlite")
+  databasePath = join(defaultRootDir, "data", "tickets.sqlite"),
+  summaryDelayMs = 480,
+  summaryProvider = createLegacySummaryProvider({ delayMs: summaryDelayMs })
 } = {}) {
   const ticketRepository = createTicketRepository(databasePath);
-  const ticketService = createTicketService({ ticketRepository });
+  const ticketService = createTicketService({ ticketRepository, summaryProvider });
 
   const server = createServer(async (request, response) => {
     const url = new URL(request.url, `http://${request.headers.host}`);
@@ -26,7 +29,9 @@ export function createTicketApplication({
       }
 
       if (request.method === "GET" && url.pathname === "/api/tickets") {
-        sendJson(response, 200, { tickets: ticketService.listTickets() });
+        sendJson(response, 200, {
+          tickets: await ticketService.listTicketsWithSummary()
+        });
         return;
       }
 
